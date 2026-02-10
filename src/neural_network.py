@@ -6,8 +6,8 @@ LEARNING_RATE = 0.01
 BATCH_SIZE = 32
 EPOCHS = 100
 
-def save_model(neural_network: NeuralNetwork, filename: str):
-    filepath = f"models/{filename}"
+def save_model(neural_network: NeuralNetwork, filename: str) -> None:
+    filepath = f"../models/{filename}"
     weights_biases = {}
     for i, layer in enumerate(neural_network.layers):
         weights_biases[f"layer_{i}_W"] = layer.W
@@ -15,13 +15,15 @@ def save_model(neural_network: NeuralNetwork, filename: str):
     np.savez(filepath, **weights_biases)
     print(f"Model saved to {filepath}")
 
-def load_model(neural_network: NeuralNetwork, filepath: str):
+def load_model(neural_network: NeuralNetwork, filename: str) -> None:
+    filepath = f"../models/{filename}"
     data = np.load(filepath)
     for i, layer in enumerate(neural_network.layers):
         layer.W = data[f"layer_{i}_W"]
         layer.b = data[f"layer_{i}_b"]
+    print("SUCCESSFULLY LOADED THE MODEL")
 
-def get_data():
+def get_data() -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     data_path = here("data")
     mndata = MNIST(data_path)
 
@@ -202,6 +204,9 @@ def batch_loop(neural_network: NeuralNetwork, n_train: int, train_X_shuffled: np
     return epoch_loss
 
 def epoch_loop(neural_network: NeuralNetwork, train_X: np.ndarray, train_y_oh: np.ndarray, test_X: np.ndarray, test_y: np.ndarray):
+    """
+    trains and tests the neural network in epochs
+    """
     n_train = train_X.shape[0]
 
     for epoch in range(1, EPOCHS):
@@ -242,6 +247,6 @@ def main():
     epoch_loop(nn, train_X, train_y_oh, test_X, test_y)
 
     # save model
-    save_model(nn, "prototype_1.npz")
+    # save_model(nn, "prototype1.npz")
 
 main()
