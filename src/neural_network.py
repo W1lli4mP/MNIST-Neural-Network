@@ -1,70 +1,10 @@
-from paths import here
-from mnist import MNIST
 import numpy as np
+from config import LEARNING_RATE
 
-LEARNING_RATE = 0.01
-BATCH_SIZE = 32
-EPOCHS = 100
-
-def save_model(neural_network: NeuralNetwork, filename: str) -> None:
-    filepath = f"../models/{filename}"
-    weights_biases = {}
-    for i, layer in enumerate(neural_network.layers):
-        weights_biases[f"layer_{i}_W"] = layer.W
-        weights_biases[f"layer_{i}_b"] = layer.b
-    np.savez(filepath, **weights_biases)
-    print(f"Model saved to {filepath}")
-
-def load_model(neural_network: NeuralNetwork, filename: str) -> None:
-    filepath = f"../models/{filename}"
-    data = np.load(filepath)
-    for i, layer in enumerate(neural_network.layers):
-        layer.W = data[f"layer_{i}_W"]
-        layer.b = data[f"layer_{i}_b"]
-    print("SUCCESSFULLY LOADED THE MODEL")
-
-def get_data() -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    data_path = here("data")
-    mndata = MNIST(data_path)
-
-    images, labels = mndata.load_training()
-    train_X = np.array(images)
-    train_y = np.array(labels)
-
-    images, labels = mndata.load_testing()
-    test_X = np.array(images)
-    test_y = np.array(labels)
-
-    return train_X, train_y, test_X, test_y
-
-# one hot encoding for y (due to mismatched size)
-def one_hot(y: np.ndarray, num_classes: int = 10) -> np.ndarray:
-    y = y.astype(int) # makes sure all data is int
-    out = np.zeros((y.shape[0], num_classes), dtype=float)
-    out[np.arange(y.shape[0]), y] = 1.0
-    return out
-
-# activation functions
+# activation and loss functions/derivatives
 def ReLU(z: np.ndarray) -> np.ndarray:
     return np.maximum(0, z)
 
-# NOTE: hold back on softmax as the output activation (does not pair well with ReLU)
-# TODO: implement cross-entrophy loss function to pair with softmax
-"""
-# activation function for output layer only
-def softmax(z: np.ndarray) ->np.ndarray:
-    # softmax depends on relative differences, so reduce the number size by subtracting by the maximum to avoid stuff like (inf/ inf)
-    z = z - np.max(z, axis=-1, keepdims=True)
-    ez = np.exp(z) # e^z
-    sum = np.sum(ez, axis=-1, keepdims=True) # axis = -1 sums up all of the classes to 1 and not anything else
-    return ez / sum
-
-def softmax_derivative(z: np.ndarray) -> np.ndarray:
-    # TODO: combine softmax with upstream gradient to calculate this and simplify jacobian matrix
-    pass
-"""
-
-# activation function derivatives
 def ReLU_derivative(z: np.ndarray) -> np.ndarray:
     return (z > 0).astype(float)
 
@@ -135,7 +75,6 @@ class Layer:
         dLda is the upstream gradient
         returns dLda_prev which is the upstream gradient of the previous layer
         """
-        # TODO: fix matrix shapes to allow this to work
         dadz = self.activation_function_derivative(z)
         # dLda = loss_function_derivative(a, y) # (upstream gradient)
 
@@ -179,74 +118,3 @@ class OutputLayer(Layer):
 
     def gradient_descent(self, dLdW: np.ndarray, dLdb: np.ndarray) -> None:
         super().gradient_descent(dLdW, dLdb)
-
-# actual training loop for a batch
-def batch_loop(neural_network: NeuralNetwork, n_train: int, train_X_shuffled: np.ndarray, train_y_oh_shuffled: np.ndarray) -> float:
-    epoch_loss = 0.0
-    for i in range(0, n_train, BATCH_SIZE):
-        batch_X = train_X_shuffled[i: i + BATCH_SIZE]
-        batch_y_oh = train_y_oh_shuffled[i: i + BATCH_SIZE]
-
-        batch_size = batch_X.shape[0]
-
-        # forward propagation -> calculate loss -> backward propagation -> gradient descent
-        # forward propagation
-        a = neural_network.forward(batch_X)
-
-        # calculate loss
-        loss = loss_function(a, batch_y_oh)
-        epoch_loss += loss
-
-        # backward propagation (includes gradient descent)
-        neural_network.backward(batch_X, batch_y_oh, batch_size)
-    
-    # return new epoch loss
-    return epoch_loss
-
-def epoch_loop(neural_network: NeuralNetwork, train_X: np.ndarray, train_y_oh: np.ndarray, test_X: np.ndarray, test_y: np.ndarray):
-    """
-    trains and tests the neural network in epochs
-    """
-    n_train = train_X.shape[0]
-
-    for epoch in range(1, EPOCHS):
-        perm = np.random.permutation(n_train)
-        train_X_shuffled = train_X[perm]
-        train_y_oh_shuffled = train_y_oh[perm]
-
-        epoch_loss = batch_loop(neural_network, n_train, train_X_shuffled, train_y_oh_shuffled)
-        epoch_loss /= n_train
-
-        # evaluate on test set
-        test_a = neural_network.forward(test_X)
-        preds = np.argmax(test_a, axis=1)
-        test_acc = np.mean(preds == test_y)
-
-        print(f"Epoch {epoch}/{EPOCHS} - train_loss: {epoch_loss:.6f}  test_acc: {test_acc:.4f}")
-
-def main():
-    # INITIALISE NN
-    nn = NeuralNetwork([784, 128, 10])
-
-    # EXTRACTING THE DATA
-    train_X, train_y, test_X, test_y = get_data()
-
-    # preprocessing for inputs: making them between 0-1 using 255 (MNIST uses grayscale)
-    train_X = train_X.astype(np.float32) / 255
-    test_X = test_X.astype(np.float32) / 255
-    train_y_oh = one_hot(train_y, 10)
-
-    # reduce sample size
-    # train_X = train_X[:1000]
-    # train_y_oh = train_y_oh[:1000]
-    # test_X = test_X[:200]
-    # test_y = test_y[:200]
-
-    # start training NN
-    print("STARTING")
-    epoch_loop(nn, train_X, train_y_oh, test_X, test_y)
-
-    # save model
-    # save_model(nn, "prototype1.npz")
-
-main()
