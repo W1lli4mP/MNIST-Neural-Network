@@ -1,7 +1,8 @@
 import numpy as np
 from neural_network import NeuralNetwork
 from data import get_data, one_hot
-from train import epoch_loop
+from train import train_loop
+from utils import save_model
 
 def main():
     # INITIALISE NN
@@ -17,9 +18,9 @@ def main():
 
     # start training NN
     print("STARTING")
-    epoch_loop(nn, train_X, train_y_oh, test_X, test_y)
+    train_loop(nn, train_X, train_y_oh, test_X, test_y)
 
     # save model
-    # save_model(nn, "prototype1.npz")
+    save_model(nn, "prototype_2.npz")
 
 main()

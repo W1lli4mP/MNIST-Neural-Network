@@ -1,3 +1,4 @@
+# hyperparameters for the neural network
 LEARNING_RATE = 0.01
 BATCH_SIZE = 32
 EPOCHS = 100

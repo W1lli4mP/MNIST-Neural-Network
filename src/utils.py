@@ -2,6 +2,9 @@ import numpy as np
 from neural_network import NeuralNetwork
 
 def save_model(neural_network: NeuralNetwork, filename: str) -> None:
+    """
+    saves a model after training to models/ as a .npz (concise and efficient file format for saving models)
+    """
     filepath = f"../models/{filename}"
     weights_biases = {}
     for i, layer in enumerate(neural_network.layers):
@@ -11,9 +14,12 @@ def save_model(neural_network: NeuralNetwork, filename: str) -> None:
     print(f"Model saved to {filepath}")
 
 def load_model(neural_network: NeuralNetwork, filename: str) -> None:
+    """
+    loads a saved model as a .npz from models/ using a specified name
+    """
     filepath = f"../models/{filename}"
     data = np.load(filepath)
     for i, layer in enumerate(neural_network.layers):
         layer.W = data[f"layer_{i}_W"]
         layer.b = data[f"layer_{i}_b"]
-    print("SUCCESSFULLY LOADED THE MODEL")
+    print("Model successfully loaded")

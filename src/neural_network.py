@@ -13,6 +13,8 @@ def loss_function(a: np.ndarray, y: np.ndarray) -> np.ndarray:
 
 def loss_function_derivative(a: np.ndarray, y: np.ndarray) -> np.ndarray:
     return 2 * (a - y) # with respect to a
+
+# neural network and layer classes
 class NeuralNetwork:
     def __init__(self, layer_dims: list[int]):
         # layer dims is a list compiled of the number of nodes in each layer (e.g. 784, 128, 10 means 784 inputs, 128 hidden, 10 outputs)
