@@ -2,7 +2,7 @@ from paths import here
 from mnist import MNIST
 import numpy as np
 
-LEARNING_RATE = 0.001
+LEARNING_RATE = 0.01
 BATCH_SIZE = 32
 EPOCHS = 100
 
@@ -57,8 +57,40 @@ def loss_function(a: np.ndarray, y: np.ndarray) -> np.ndarray:
 def loss_function_derivative(a: np.ndarray, y: np.ndarray) -> np.ndarray:
     return 2 * (a - y) # with respect to a
 class NeuralNetwork:
-    def __init__(self):
-        pass
+    def __init__(self, layer_dims: list[int]):
+        # layer dims is a list compiled of the number of nodes in each layer (e.g. 784, 128, 10 means 784 inputs, 128 hidden, 10 outputs)
+        self.layers = []
+        for i in range(len(layer_dims) - 1):
+            in_features = layer_dims[i]
+            out_features = layer_dims[i + 1]
+
+            weights = np.random.normal(size=(in_features, out_features), loc=0, scale=0.01) # mean = 0, standard deviation = 0.01 (small)
+            biases = np.zeros(out_features)
+
+            # if output layer, initialise it
+            if i == len(layer_dims) - 2:
+                self.layers.append(OutputLayer(biases, weights, out_features))
+            else:
+                self.layers.append(Layer(biases, weights))
+    
+    def forward(self, x):
+        self.activations = [x]
+        for layer in self.layers:
+            x = layer.forward(x)
+            self.activations.append(x)
+        return x
+    
+    def backward(self, x, y, batch_size):
+        dLda = loss_function_derivative(self.activations[-1], y) # obtain last activation (from output layer)
+
+        # traverse layers in reverse (its backprop)
+        for i in range(len(self.layers) - 1, -1, -1):
+            layer = self.layers[i]
+            layer_input = self.activations[i] # activation from previous layer
+            
+            # compute gradients and apply gradient descent
+            z = layer.linearity(layer_input)
+            dLda = layer.backward(layer_input, z, dLda, batch_size) # calculate new upstream gradient and apply it via backpropagation
 
 class Layer:
     def __init__(self, biases: np.ndarray, weights: np.ndarray) -> None:
@@ -81,21 +113,29 @@ class Layer:
         a = self.activation_function(z)
         return a
     
-    def backward(self, x: np.ndarray, a: np.ndarray, y: np.ndarray, z: np.ndarray, batch_size: int) -> tuple[np.ndarray, np.ndarray]:
+    def backward(self, x: np.ndarray, z: np.ndarray, dLda: np.ndarray, batch_size: int) -> np.ndarray:
+        """
+        dLda is the upstream gradient
+        returns dLda_prev which is the upstream gradient of the previous layer
+        """
         # TODO: fix matrix shapes to allow this to work
-        dzdW = x.T
         dadz = self.activation_function_derivative(z)
-        dLda = loss_function_derivative(a, y) # (upstream gradient)
+        # dLda = loss_function_derivative(a, y) # (upstream gradient)
 
         dLdz = dadz * dLda # delta (upstream gradient at pre activation)
 
         # weight gradient (chain rule)
+        dzdW = x.T
         dLdW = dzdW @ dLdz / batch_size # .outer() to fix matrix shape mismatch
 
         # bias gradient (chain rule)
         dLdb = np.sum(dLdz, axis=0) / batch_size
 
-        return dLdW, dLdb
+        dLda_prev = dLdz @ self.W.T
+
+        # apply gradient descent
+        self.gradient_descent(dLdW, dLdb)
+        return dLda_prev
     
     def gradient_descent(self, dLdW: np.ndarray, dLdb: np.ndarray) -> None:
         self.W -= LEARNING_RATE * dLdW
@@ -117,35 +157,14 @@ class OutputLayer(Layer):
     def forward(self, x: np.ndarray) -> np.ndarray:
         return super().forward(x)
 
-    def backward(self, x: np.ndarray, a: np.ndarray, y: np.ndarray, z: np.ndarray, batch_size: int) -> tuple[np.ndarray, np.ndarray]:
-        return super().backward(x, a, y, z, batch_size)
+    def backward(self, x: np.ndarray, z: np.ndarray, dLda: np.ndarray, batch_size: int) -> np.ndarray:
+        return super().backward(x, z, dLda, batch_size)
 
     def gradient_descent(self, dLdW: np.ndarray, dLdb: np.ndarray) -> None:
         super().gradient_descent(dLdW, dLdb)
 
-# 10 since theres no hidden layers for now (input -> output)
-# INITIALISATION
-weights = np.random.normal(size=(784, 10), loc=0, scale=0.01) # mean = 0, standard deviation = 0.01 (small)
-biases = np.zeros(shape=(10,))
-
-output_layer = OutputLayer(biases, weights, 10)
-
-# DATA
-train_X, train_y, test_X, test_y = get_data()
-
-# preprocessing for inputs: making them between 0-1 using 255 (MNIST uses grayscale)
-train_X = train_X.astype(np.float32) / 255
-test_X = test_X.astype(np.float32) / 255
-train_y_oh = one_hot(train_y, 10)
-
-# reduce sample size
-train_X = train_X[:1000]
-train_y_oh = train_y_oh[:1000]
-test_X = test_X[:200]
-test_y = test_y[:200]
-
 # actual training loop for a batch
-def batch_loop(n_train: int, train_X_shuffled: np.ndarray, train_y_oh_shuffled: np.ndarray) -> float:
+def batch_loop(neural_network: NeuralNetwork, n_train: int, train_X_shuffled: np.ndarray, train_y_oh_shuffled: np.ndarray) -> float:
     epoch_loss = 0.0
     for i in range(0, n_train, BATCH_SIZE):
         batch_X = train_X_shuffled[i: i + BATCH_SIZE]
@@ -155,22 +174,19 @@ def batch_loop(n_train: int, train_X_shuffled: np.ndarray, train_y_oh_shuffled: 
 
         # forward propagation -> calculate loss -> backward propagation -> gradient descent
         # forward propagation
-        a = output_layer.forward(batch_X)
+        a = neural_network.forward(batch_X)
 
         # calculate loss
         loss = loss_function(a, batch_y_oh)
         epoch_loss += loss
 
-        # backward propagation
-        dLdW, dLdb = output_layer.backward(batch_X, a, batch_y_oh, z=output_layer.linearity(batch_X), batch_size=batch_size)
-
-        # apply gradient descent
-        output_layer.gradient_descent(dLdW, dLdb)
+        # backward propagation (includes gradient descent)
+        neural_network.backward(batch_X, batch_y_oh, batch_size)
     
     # return new epoch loss
     return epoch_loss
 
-def epoch_loop(test_X: np.ndarray, test_y: np.ndarray):
+def epoch_loop(neural_network: NeuralNetwork, train_X: np.ndarray, train_y_oh: np.ndarray, test_X: np.ndarray, test_y: np.ndarray):
     n_train = train_X.shape[0]
 
     for epoch in range(1, EPOCHS):
@@ -178,42 +194,36 @@ def epoch_loop(test_X: np.ndarray, test_y: np.ndarray):
         train_X_shuffled = train_X[perm]
         train_y_oh_shuffled = train_y_oh[perm]
 
-        epoch_loss = batch_loop(n_train, train_X_shuffled, train_y_oh_shuffled)
+        epoch_loss = batch_loop(neural_network, n_train, train_X_shuffled, train_y_oh_shuffled)
         epoch_loss /= n_train
 
         # evaluate on test set
-        test_a = output_layer.forward(test_X)
+        test_a = neural_network.forward(test_X)
         preds = np.argmax(test_a, axis=1)
         test_acc = np.mean(preds == test_y)
 
         print(f"Epoch {epoch}/{EPOCHS} - train_loss: {epoch_loss:.6f}  test_acc: {test_acc:.4f}")
 
-# start training NN
-print("STARTING")
-epoch_loop(test_X, test_y)
+def main():
+    # INITIALISE NN
+    nn = NeuralNetwork([784, 128, 10])
 
-# 28x28 res
-# INPUT: 784
-# OUTPUT: 10
-# start with 0 hidden layer
-# then 1 hidden layer (128 nodes)
+    # EXTRACTING THE DATA
+    train_X, train_y, test_X, test_y = get_data()
 
-# PARAMETERS
-# weights: random (very small)
-# biases: zero
-# how weight will be designed:
-# consider layers A -> B
-# B owns the weight matrix not A
+    # preprocessing for inputs: making them between 0-1 using 255 (MNIST uses grayscale)
+    train_X = train_X.astype(np.float32) / 255
+    test_X = test_X.astype(np.float32) / 255
+    train_y_oh = one_hot(train_y, 10)
 
-# HYPER PARAMETERS
-# no. hidden layers
-# no. nodes per layer
-# learning rate
-# batch size
-# loss function (how wrong the model was at a data point)
-# (a - y)^2
-# cost function (how wrong the model was overall)
-# 1/N * sum(a - y)^2
-# activation function (ReLU)
+    # reduce sample size
+    # train_X = train_X[:1000]
+    # train_y_oh = train_y_oh[:1000]
+    # test_X = test_X[:200]
+    # test_y = test_y[:200]
 
-# TODO: refactor codebase and actually use NN class now (add hidden layers too)
+    # start training NN
+    print("STARTING")
+    epoch_loop(nn, train_X, train_y_oh, test_X, test_y)
+
+main()
