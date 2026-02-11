@@ -2,7 +2,7 @@ import pygame as p
 import numpy as np
 from neural_network import NeuralNetwork
 from utils import load_model
-from config import LAYER_DIMS, SIDEBAR_WIDTH, SCALAR, SQUARE, HEIGHT, WIDTH, COLOUR_BOARD_LIGHT, COLOUR_BOARD_DARK, COLOUR_PEN, COLOUR_BACKGROUND, PREDICTION_TEXT_COLOUR, PREDICTION_TEXT_SIZE, PREDICTION_TEXT_COORDINATES
+from config import CHOSEN_MODEL_NAME, LAYER_DIMS, SIDEBAR_WIDTH, SCALAR, SQUARE, HEIGHT, WIDTH, COLOUR_BOARD_LIGHT, COLOUR_BOARD_DARK, COLOUR_PEN, COLOUR_BACKGROUND, PREDICTION_TEXT_COLOUR, PREDICTION_TEXT_SIZE, PREDICTION_TEXT_COORDINATES, PREDICTION_TEXT_FONT
 
 class Program:
     def __init__(self, screen):
@@ -14,7 +14,7 @@ class Program:
         self.prediction = ""
 
         nn = NeuralNetwork(LAYER_DIMS)
-        load_model(nn, "prototype_5.npz")
+        load_model(nn, CHOSEN_MODEL_NAME)
         self.nn = nn
 
     def handle_events(self):
@@ -78,7 +78,7 @@ class Program:
             self.input_array[s[1], s[0]] = 1.0 # register that the square has been drawn onto the numpy array
 
         # draw prediction
-        font = p.font.SysFont("Arial", PREDICTION_TEXT_SIZE)
+        font = p.font.SysFont(PREDICTION_TEXT_FONT, PREDICTION_TEXT_SIZE)
         screen.blit(font.render(self.prediction, True, PREDICTION_TEXT_COLOUR), (PREDICTION_TEXT_COORDINATES))
 
         p.display.flip()

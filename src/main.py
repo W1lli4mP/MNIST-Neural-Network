@@ -3,7 +3,7 @@ from neural_network import NeuralNetwork
 from data import get_data, one_hot
 from train import train_loop, evaluate, get_results
 from utils import save_model, load_model, save_results
-from config import MODEL_NAME, LAYER_DIMS
+from config import MODEL_NAME, MODEL_RESULTS_NAME, LAYER_DIMS
 
 def main():
     # # INITIALISE NN
@@ -21,7 +21,7 @@ def main():
     print("STARTING")
     training_history = train_loop(nn, train_X, train_y_oh, test_X, test_y)
     results = get_results(training_history)
-    save_results(results, "prototype_4_results.json")
+    save_results(results, MODEL_RESULTS_NAME)
 
     # save model
     save_model(nn, MODEL_NAME)

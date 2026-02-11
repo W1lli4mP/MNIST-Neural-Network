@@ -1,5 +1,6 @@
 # metadata
-MODEL_NAME = "prototype_5.npz"
+MODEL_NAME = "prototype_0.npz"
+MODEL_RESULTS_NAME = "prototype_0.json"
 
 # hyperparameters for the neural network
 LAYER_DIMS = [784, 128, 10]
@@ -12,6 +13,8 @@ BATCH_SIZE = 64
 EPOCHS = 75
 
 # app
+CHOSEN_MODEL_NAME = "prototype_5.npz"
+
 SIDEBAR_WIDTH = 200
 SCALAR = 28
 SQUARE = 25
@@ -26,3 +29,4 @@ COLOUR_BACKGROUND = "#124659"
 PREDICTION_TEXT_SIZE = 50
 PREDICTION_TEXT_COLOUR = "#FFFFFF"
 PREDICTION_TEXT_COORDINATES = (WIDTH // 2 + 340, HEIGHT // 2 - 40)
+PREDICTION_TEXT_FONT = "Arial"
