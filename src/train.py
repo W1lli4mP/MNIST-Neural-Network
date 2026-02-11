@@ -1,6 +1,6 @@
 import numpy as np
 from neural_network import NeuralNetwork, loss_function
-from config import BATCH_SIZE, EPOCHS
+from config import LEARNING_RATE, BATCH_SIZE, HIDDEN_UNITS, EPOCHS, MODEL_NAME
 
 # actual training loop for a batch
 def batch_loop(neural_network: NeuralNetwork, n_train: int, train_X_shuffled: np.ndarray, train_y_oh_shuffled: np.ndarray) -> float:
@@ -49,11 +49,42 @@ def evaluate(neural_network: NeuralNetwork, test_X: np.ndarray, test_y: np.ndarr
     accuracy = np.mean(preds == test_y)
     return accuracy
 
-def train_loop(neural_network: NeuralNetwork, train_X: np.ndarray, train_y_oh: np.ndarray, test_X: np.ndarray, test_y: np.ndarray) -> None:
+def train_loop(neural_network: NeuralNetwork, train_X: np.ndarray, train_y_oh: np.ndarray, test_X: np.ndarray, test_y: np.ndarray) -> list:
     """
     actual training/epoch loop with evaluation
+    return list of dicts containing the training results/history per epoch
     """
+    training_history = []
     for epoch in range(1, EPOCHS):
+        # calculate loss and accuracy
         loss = train_epoch(neural_network, train_X, train_y_oh)
         acc = evaluate(neural_network, test_X, test_y)
         print(f"Epoch {epoch}/{EPOCHS} - train_loss: {loss:.6f}  test_acc: {acc:.4f}")
+
+        # record into list as object
+        training_history.append({
+            "epoch": epoch,
+            "train_loss": loss,
+            "test_acc": acc
+        })
+    return training_history
+
+def get_results(training_history: list) -> dict:
+    """
+    construct results dict from training metrics and returns it
+    """
+    final_accuracy = training_history[-1]["test_acc"]
+    final_loss = training_history[-1]["train_loss"]
+
+    return {
+        "model_name": MODEL_NAME,
+        "final_accuracy": final_accuracy,
+        "final_loss": final_loss,
+        "hyperparameters": {
+            "learning_rate": LEARNING_RATE,
+            "batch_size": BATCH_SIZE,
+            "hidden_units": HIDDEN_UNITS,
+            "epochs_trained": EPOCHS
+        },
+        "training_history": training_history
+    }
