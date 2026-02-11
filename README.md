@@ -36,6 +36,8 @@ To train a new neural network model on the MNIST dataset:
 py src/main.py
 ```
 
+![Training Output](assets/training-output.png)
+
 This will:
 - Load the MNIST training and test data
 - Train the neural network with the configured hyperparameters
@@ -52,10 +54,12 @@ To draw digits and get instant predictions from a trained model:
 py src/app.py
 ```
 
-The pygame application will launch a graphical interface where you can:
+![GUI Demo](assets/gui-demo.gif)
+
+The pygame application will launch a graphical interface (as seen above) allowing you to:
 - Draw a digit with your mouse on the left-hand canvas
 - Press **SPACE** to get a prediction from the neural network shown in the right-hand sidebar and clear the old drawing
-- Repeatedly draw again to test the neural network on other digits
+- Repeatedly draw again to test the neural network---metrics on other digits
 
 The GUI loads the model specified in [config.py](src/config.py) which can be modified with previously saved models.
 
@@ -101,6 +105,10 @@ Trained models and performance metrics are saved automatically:
 - **Results**: `results/` directory as `.json` files with training history and evaluation metrics
 
 Compare different prototypes by examining their results to identify the best configuration.
+
+For a visual comparison, try plotting the metrics onto a graph!
+
+![Training Performance](/assets/training-performance.png)
 
 ## Contributing
 
