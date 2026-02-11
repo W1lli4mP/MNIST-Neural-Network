@@ -55,7 +55,7 @@ def train_loop(neural_network: NeuralNetwork, train_X: np.ndarray, train_y_oh: n
     return list of dicts containing the training results/history per epoch
     """
     training_history = []
-    for epoch in range(1, EPOCHS):
+    for epoch in range(1, EPOCHS + 1):
         # calculate loss and accuracy
         loss = train_epoch(neural_network, train_X, train_y_oh)
         acc = evaluate(neural_network, test_X, test_y)
