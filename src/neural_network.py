@@ -12,7 +12,19 @@ def loss_function(a: np.ndarray, y: np.ndarray) -> np.ndarray:
     return np.sum((a - y) ** 2)
 
 def loss_function_derivative(a: np.ndarray, y: np.ndarray) -> np.ndarray:
-    return 2 * (a - y) # with respect to a
+    return (a - y) # with respect to a
+
+# new activation and loss functions
+def softmax(z: np.ndarray) ->np.ndarray:
+    # softmax depends on relative differences, so reduce the number size by subtracting by the maximum to avoid stuff like (inf/ inf)
+    z = z - np.max(z, axis=-1, keepdims=True)
+    ez = np.exp(z) # e^z
+    exp_sum = np.sum(ez, axis=-1, keepdims=True) # axis = -1 sums up all of the classes to 1 and not anything else
+    return ez / exp_sum
+
+def cross_entropy(a: np.ndarray, y: np.ndarray) -> np.ndarray:
+    epsilon = 1e-10 # to avoid log(0)
+    return -np.sum(y * np.log(a + epsilon))
 
 # neural network and layer classes
 class NeuralNetwork:
@@ -104,7 +116,7 @@ class OutputLayer(Layer):
         super().__init__(biases, weights)
     
     def activation_function(self, z: np.ndarray) -> np.ndarray:
-        return z
+        return softmax(z)
 
     def activation_function_derivative(self, z: np.ndarray) -> np.ndarray:
         return np.ones_like(z)
