@@ -51,7 +51,10 @@ def loss_function_derivative(a: np.ndarray, y: np.ndarray) -> np.ndarray:
 
 # neural network and layer classes
 class NeuralNetwork:
-    def __init__(self, layer_dims: list[int]) -> None:
+    def __init__(self, layer_dims: list[int], l2_lambda: float = 0.0) -> None:
+        # initialise lambda for calculating the total loss
+        self.l2_lambda = l2_lambda
+        
         # layer dims is a list compiled of the number of nodes in each layer (e.g. 784, 128, 10 means 784 inputs, 128 hidden, 10 outputs)
         self.layers = []
         for i in range(len(layer_dims) - 1):
@@ -63,9 +66,9 @@ class NeuralNetwork:
 
             # if output layer, initialise it
             if i == len(layer_dims) - 2:
-                self.layers.append(OutputLayer(biases, weights))
+                self.layers.append(OutputLayer(biases, weights, l2_lambda))
             else:
-                self.layers.append(Layer(biases, weights))
+                self.layers.append(Layer(biases, weights, l2_lambda))
     
     def forward(self, x: np.ndarray) -> np.ndarray:
         self.activations = [x]
@@ -99,10 +102,20 @@ class NeuralNetwork:
             # backpropagate to find upstream gradient (pre-gradient descent) for preceding layer and apply gradient descent
             dLda = current_layer.backward(a, a_prev, dLda, batch_size)
 
+    def calculate_total_loss(self, loss_data: float) -> float:
+        l2_penalty = 0.0
+        # total loss is defined as the loss data (original loss) with added decay/2 * sum of squared weights (penalty)
+        # L_total = L_data + lambda/2 * sum(W^2)
+        for layer in self.layers:
+            l2_penalty += np.sum(layer.W ** 2)
+        l2_penalty *= (self.l2_lambda / 2)
+        return loss_data + l2_penalty
+
 class Layer:
-    def __init__(self, biases: np.ndarray, weights: np.ndarray) -> None:
+    def __init__(self, biases: np.ndarray, weights: np.ndarray, l2_lambda: float = 0.0) -> None:
         self.b = biases
         self.W = weights
+        self.l2_lambda = l2_lambda
 
     def activation_function(self, z: np.ndarray) -> np.ndarray:
         return hidden_activation_function(z)
@@ -155,12 +168,12 @@ class Layer:
         return dLda_prev
     
     def gradient_descent(self, dLdW: np.ndarray, dLdb: np.ndarray) -> None:
-        self.W -= LEARNING_RATE * dLdW
+        self.W -= LEARNING_RATE * (dLdW + self.l2_lambda * self.W) # add regularisation for weight (called weight decay)
         self.b -= LEARNING_RATE * dLdb
 
 class OutputLayer(Layer):
-    def __init__(self, biases: np.ndarray, weights: np.ndarray) -> None:
-        super().__init__(biases, weights)
+    def __init__(self, biases: np.ndarray, weights: np.ndarray, l2_lambda: float = 0.0) -> None:
+        super().__init__(biases, weights, l2_lambda)
     
     def activation_function(self, z: np.ndarray) -> np.ndarray:
         return output_activation_function(z)
