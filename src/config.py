@@ -1,6 +1,6 @@
 # metadata
-MODEL_NAME = "prototype_0.npz"
-MODEL_RESULTS_NAME = "prototype_0.json"
+MODEL_NAME = "prototype_6.npz"
+MODEL_RESULTS_NAME = "prototype_6.json"
 
 # hyperparameters for the neural network
 LAYER_DIMS = [784, 128, 10]
@@ -11,6 +11,7 @@ OUTPUT_UNITS = LAYER_DIMS[-1]
 LEARNING_RATE = 0.01
 BATCH_SIZE = 64
 EPOCHS = 75
+L2_LAMBDA = 1e-4
 
 # app
 CHOSEN_MODEL_NAME = "prototype_5.npz"
