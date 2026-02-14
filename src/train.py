@@ -19,8 +19,9 @@ def batch_loop(neural_network: NeuralNetwork, n_train: int, train_X_shuffled: np
         a = neural_network.forward(batch_X)
 
         # calculate loss
-        loss = loss_function(a, batch_y_oh)
-        epoch_loss += loss
+        loss_data = loss_function(a, batch_y_oh)
+        loss_total = neural_network.calculate_total_loss(loss_data)
+        epoch_loss += loss_total
 
         # backward propagation (includes gradient descent)
         neural_network.backward(batch_y_oh, batch_size)
