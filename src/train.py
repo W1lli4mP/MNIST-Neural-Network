@@ -23,7 +23,7 @@ def batch_loop(neural_network: NeuralNetwork, n_train: int, train_X_shuffled: np
         epoch_loss += loss
 
         # backward propagation (includes gradient descent)
-        neural_network.backward(batch_X, batch_y_oh, batch_size)
+        neural_network.backward(batch_y_oh, batch_size)
     
     # return new epoch loss
     return epoch_loss

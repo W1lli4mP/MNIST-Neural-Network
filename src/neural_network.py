@@ -63,7 +63,7 @@ class NeuralNetwork:
 
             # if output layer, initialise it
             if i == len(layer_dims) - 2:
-                self.layers.append(OutputLayer(biases, weights, out_features))
+                self.layers.append(OutputLayer(biases, weights))
             else:
                 self.layers.append(Layer(biases, weights))
     
