@@ -9,9 +9,11 @@ def save_model(neural_network: NeuralNetwork, filename: str) -> None:
     """
     filepath = here("models", filename)
     weights_biases = {}
-    for i, layer in enumerate(neural_network.layers):
-        weights_biases[f"layer_{i}_W"] = layer.W
-        weights_biases[f"layer_{i}_b"] = layer.b
+    weights = neural_network.get_weights()
+    biases = neural_network.get_biases()
+    for i, (W, b) in enumerate(zip(weights, biases)):
+        weights_biases[f"layer_{i}_W"] = W
+        weights_biases[f"layer_{i}_b"] = b
     np.savez(filepath, **weights_biases)
     print(f"Model saved to {filepath}")
 
@@ -21,9 +23,11 @@ def load_model(neural_network: NeuralNetwork, filename: str) -> None:
     """
     filepath = here("models", filename)
     data = np.load(filepath)
-    for i, layer in enumerate(neural_network.layers):
-        layer.W = data[f"layer_{i}_W"]
-        layer.b = data[f"layer_{i}_b"]
+    num_trainable = len(neural_network.get_trainable_layers())
+    weights = [data[f"layer_{i}_W"] for i in range(num_trainable)]
+    biases = [data[f"layer_{i}_b"] for i in range(num_trainable)]
+    neural_network.set_weights(weights)
+    neural_network.set_biases(biases)
     print("Model successfully loaded")
 
 def save_results(results: dict, filename: str = "results.json") -> None:

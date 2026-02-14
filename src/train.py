@@ -45,7 +45,7 @@ def evaluate(neural_network: NeuralNetwork, test_X: np.ndarray, test_y: np.ndarr
     """
     test the model and return the accuracy
     """
-    test_a = neural_network.forward(test_X)
+    test_a = neural_network.forward(test_X, training=False) # don't apply dropout during testing
     preds = np.argmax(test_a, axis=1)
     accuracy = np.mean(preds == test_y)
     return accuracy
