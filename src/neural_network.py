@@ -44,10 +44,10 @@ def output_activation_function_derivative(z: np.ndarray) -> np.ndarray:
     return # don't need it for softmax + cross-entropy
 
 def loss_function(a: np.ndarray, y: np.ndarray) -> np.ndarray:
-    return np.sum((a - y) ** 2)
+    return cross_entropy(a, y)
 
 def loss_function_derivative(a: np.ndarray, y: np.ndarray) -> np.ndarray:
-    return (a - y) # with respect to a
+    return # don't need it for softmax + cross-entropy
 
 # neural network and layer classes
 class NeuralNetwork:

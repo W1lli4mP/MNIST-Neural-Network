@@ -1,5 +1,5 @@
 import numpy as np
-from neural_network import NeuralNetwork, cross_entropy
+from neural_network import NeuralNetwork, loss_function
 from config import LEARNING_RATE, BATCH_SIZE, HIDDEN_UNITS, EPOCHS, MODEL_NAME
 
 # actual training loop for a batch
@@ -19,7 +19,7 @@ def batch_loop(neural_network: NeuralNetwork, n_train: int, train_X_shuffled: np
         a = neural_network.forward(batch_X)
 
         # calculate loss
-        loss = cross_entropy(a, batch_y_oh)
+        loss = loss_function(a, batch_y_oh)
         epoch_loss += loss
 
         # backward propagation (includes gradient descent)
