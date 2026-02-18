@@ -1,6 +1,6 @@
 # metadata
-MODEL_NAME = "test5.npz"
-MODEL_RESULTS_NAME = "test5.json"
+MODEL_NAME = "prototype_8.npz"
+MODEL_RESULTS_NAME = "prototype_8.json"
 
 # hyperparameters for the neural network
 LAYER_DIMS = [784, 128, 10]
@@ -13,9 +13,10 @@ BATCH_SIZE = 64
 EPOCHS = 100
 L2_LAMBDA = 1e-4
 DROPOUT_RATE = 0.3
+MOMENTUM = 0.9
 
 # app
-CHOSEN_MODEL_NAME = "test4.npz"
+CHOSEN_MODEL_NAME = "prototype_8.npz"
 
 SIDEBAR_WIDTH = 200
 SCALAR = 28

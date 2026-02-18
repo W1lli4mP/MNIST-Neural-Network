@@ -3,11 +3,11 @@ from neural_network import NeuralNetwork
 from data import get_data, one_hot
 from train import train_loop, evaluate, get_results
 from utils import save_model, load_model, save_results
-from config import MODEL_NAME, MODEL_RESULTS_NAME, LAYER_DIMS, L2_LAMBDA
+from config import MODEL_NAME, MODEL_RESULTS_NAME, LAYER_DIMS, L2_LAMBDA, MOMENTUM
 
 def main():
     # # INITIALISE NN
-    nn = NeuralNetwork(LAYER_DIMS, L2_LAMBDA)
+    nn = NeuralNetwork(LAYER_DIMS, L2_LAMBDA, MOMENTUM)
 
     # EXTRACTING THE DATA
     train_X, train_y, test_X, test_y = get_data()

@@ -51,7 +51,7 @@ def loss_function_derivative(a: np.ndarray, y: np.ndarray) -> np.ndarray:
 
 # neural network and layer classes
 class NeuralNetwork:
-    def __init__(self, layer_dims: list[int], l2_lambda: float = 0.0) -> None:
+    def __init__(self, layer_dims: list[int], l2_lambda: float = 0.0, momentum: float = 0.9) -> None:
         # initialise lambda for calculating the total loss
         self.l2_lambda = l2_lambda
         
@@ -66,9 +66,9 @@ class NeuralNetwork:
 
             # if output layer, initialise it
             if i == len(layer_dims) - 2:
-                self.layers.append(OutputLayer(biases, weights, l2_lambda))
+                self.layers.append(OutputLayer(biases, weights, l2_lambda, momentum))
             else:
-                self.layers.append(Layer(biases, weights, l2_lambda))
+                self.layers.append(Layer(biases, weights, l2_lambda, momentum))
                 self.layers.append(Dropout(DROPOUT_RATE))
     
     def forward(self, x: np.ndarray, training: bool = True) -> np.ndarray:
@@ -142,10 +142,13 @@ class NeuralNetwork:
             layer.b = b
 
 class Layer:
-    def __init__(self, biases: np.ndarray, weights: np.ndarray, l2_lambda: float = 0.0) -> None:
+    def __init__(self, biases: np.ndarray, weights: np.ndarray, l2_lambda: float = 0.0, momentum: float = 0.9) -> None:
         self.b = biases
         self.W = weights
         self.l2_lambda = l2_lambda
+        self.momentum = momentum
+        self.v_W = 0.0
+        self.v_b = 0.0
 
     def activation_function(self, z: np.ndarray) -> np.ndarray:
         return hidden_activation_function(z)
@@ -198,12 +201,16 @@ class Layer:
         return dLda_prev
     
     def gradient_descent(self, dLdW: np.ndarray, dLdb: np.ndarray) -> None:
-        self.W -= LEARNING_RATE * (dLdW + self.l2_lambda * self.W) # add regularisation for weight (called weight decay)
-        self.b -= LEARNING_RATE * dLdb
+        # compute velocities
+        self.v_W = self.momentum * self.v_W - LEARNING_RATE * (dLdW + self.l2_lambda * self.W) # added regularisation for weight (called weight decay)
+        self.v_b = self.momentum * self.v_b - LEARNING_RATE * dLdb
+
+        self.W += self.v_W
+        self.b += self.v_b
 
 class OutputLayer(Layer):
-    def __init__(self, biases: np.ndarray, weights: np.ndarray, l2_lambda: float = 0.0) -> None:
-        super().__init__(biases, weights, l2_lambda)
+    def __init__(self, biases: np.ndarray, weights: np.ndarray, l2_lambda: float = 0.0, momentum: float = 0.9) -> None:
+        super().__init__(biases, weights, l2_lambda, momentum)
     
     def activation_function(self, z: np.ndarray) -> np.ndarray:
         return output_activation_function(z)
