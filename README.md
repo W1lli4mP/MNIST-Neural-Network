@@ -73,6 +73,9 @@ Adjustable parameters:
 - Number of epochs
 - Layer dimensions (keeping input = 784 and output = 10)
 - Batch size
+- Lambda (regularisation strength for L2 regularisation)
+- Dropout rate
+- Momentum
 
 ### GUI Customisation
 Customise the GUI by modifying [config.py](src/config.py):
