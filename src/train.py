@@ -1,6 +1,6 @@
 import numpy as np
 from neural_network import NeuralNetwork, loss_function
-from config import LEARNING_RATE, BATCH_SIZE, HIDDEN_UNITS, EPOCHS, MODEL_NAME
+from config import LEARNING_RATE, BATCH_SIZE, HIDDEN_UNITS, EPOCHS, MODEL_NAME, L2_LAMBDA, DROPOUT_RATE, MOMENTUM
 
 # actual training loop for a batch
 def batch_loop(neural_network: NeuralNetwork, n_train: int, train_X_shuffled: np.ndarray, train_y_oh_shuffled: np.ndarray) -> float:
@@ -85,7 +85,10 @@ def get_results(training_history: list) -> dict:
             "learning_rate": LEARNING_RATE,
             "batch_size": BATCH_SIZE,
             "hidden_units": HIDDEN_UNITS,
-            "epochs_trained": EPOCHS
+            "epochs_trained": EPOCHS,
+            "l2_lambda": L2_LAMBDA,
+            "dropout_rate": DROPOUT_RATE,
+            "momentum": MOMENTUM
         },
         "training_history": training_history
     }
